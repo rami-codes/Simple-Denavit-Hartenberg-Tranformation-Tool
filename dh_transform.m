@@ -1,10 +1,10 @@
 function [T] = dh_transform(a, alpha, d, theta, standard_dh)
 % dh_transform computes the Denavit-Hartenberg transformation matrix
-% Given: 
+% Given:
 %   a (also written as 'r') - distance between origin(i) and origin(i-1)
-%                             about z(i-1) 
+%                             about z(i-1)
 %
-%   alpha(?) - angle from z(i-1) to z(i) about x(i) 
+%   alpha(?) - angle from z(i-1) to z(i) about x(i)
 %
 %   d - the link offset betwen origin(i) with respect to origin(i-1)
 %     along z(i-1)
@@ -33,6 +33,7 @@ if (nargin <= 2)
     else
         standard_dh = alpha;
     end
+    
     dh_parameter_matrix = a;
     for row = 1:size(dh_parameter_matrix,1)
         dh_row = dh_parameter_matrix(row,:);
@@ -42,27 +43,35 @@ if (nargin <= 2)
         theta = dh_row(4);
         T(:,:,row) = dh_transform(a, alpha, d, theta, standard_dh);
     end
-    T_out = sym(eye(4,4));
-    for i=1:size(T,3)
-        T_out = T_out * T(:,:,i);
-    end
-    T = T_out;
-else if (nargin >= 4)
-        if (nargin < 5)
-            standard_dh = 1;
-        end
-        if standard_dh  % Standard DH convention computation
-            T = [cos(theta)  -sin(theta)*cos(alpha)  sin(theta)*sin(alpha) a*cos(theta);
-                sin(theta)   cos(theta)*cos(alpha)   -cos(theta)*sin(alpha) a*sin(theta);
-                0          sin(alpha)               cos(alpha)            d;
-                0          0                        0                     1];
-        else  % Modified DH convention computation
-            T = [cos(theta)  -sin(theta)  0  a;
-                sin(theta)*cos(alpha) cos(theta)*cos(alpha) -sin(alpha) -d*sin(alpha);
-                sin(theta)*sin(alpha) cos(theta)*sin(alpha) cos(alpha) d*cos(alpha);
-                0   0   0   1];
-        end
+    
+    if (isa(T,'sym'))
+        T_out = sym(eye(4,4));
+    else  
+         T_out = eye(4,4);
     end
     
-end
+    for i=1:size(T,3)
+            T_out = T_out * T(:,:,i);
+    end
+    T = T_out;
+
+        
+else if (nargin >= 4)
+            if (nargin < 5)
+                standard_dh = 1;
+            end
+            if standard_dh  % Standard DH convention computation
+                T = [cos(theta)  -sin(theta)*cos(alpha)  sin(theta)*sin(alpha) a*cos(theta);
+                    sin(theta)   cos(theta)*cos(alpha)   -cos(theta)*sin(alpha) a*sin(theta);
+                    0          sin(alpha)               cos(alpha)            d;
+                    0          0                        0                     1];
+            else  % Modified DH convention computation
+                T = [cos(theta)  -sin(theta)  0  a;
+                    sin(theta)*cos(alpha) cos(theta)*cos(alpha) -sin(alpha) -d*sin(alpha);
+                    sin(theta)*sin(alpha) cos(theta)*sin(alpha) cos(alpha) d*cos(alpha);
+                    0   0   0   1];
+            end
+        end
+        
+    end
 
